@@ -3,112 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I Love You</title>
+    <title>Hiệu Ứng Trái Tim Ngẫu Nhiên</title>
     <style>
         body {
             margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: radial-gradient(circle, #ff9a9e, #fad0c4, #fbc2eb);
-            overflow: hidden;
-            font-family: 'Arial', sans-serif;
-        }
-
-        h1 {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #fff;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
-                         0 0 20px rgba(255, 0, 150, 0.6),
-                         0 0 30px rgba(255, 0, 150, 0.6);
-            animation: glow 2s infinite alternate, move 4s infinite;
-        }
-
-        @keyframes glow {
-            0% {
-                text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
-                             0 0 20px rgba(255, 0, 150, 0.6),
-                             0 0 30px rgba(255, 0, 150, 0.6),
-                             0 0 40px rgba(255, 0, 255, 0.5);
-            }
-            100% {
-                text-shadow: 0 0 15px rgba(255, 255, 255, 1),
-                             0 0 25px rgba(255, 0, 150, 1),
-                             0 0 35px rgba(255, 0, 255, 1),
-                             0 0 50px rgba(255, 0, 255, 0.8);
-            }
-        }
-
-        .hearts {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+            background-color: black;
             overflow: hidden;
         }
-
-        .heart {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: red;
-            opacity: 0.8;
-            clip-path: polygon(50% 0%, 100% 30%, 80% 100%, 50% 80%, 20% 100%, 0% 30%);
-            animation: float 6s infinite ease-in-out, fade 6s infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(100%) scale(0.5) rotate(0deg);
-            }
-            50% {
-                transform: translateY(30%) scale(1.2) rotate(180deg);
-            }
-            100% {
-                transform: translateY(-150%) scale(0.8) rotate(360deg);
-            }
-        }
-
-        @keyframes fade {
-            0%, 70% {
-                opacity: 1;
-            }
-            100% {
-                opacity: 0;
-            }
+        canvas {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <h1>I Love You</h1>
-    <div class="hearts"></div>
+    <canvas id="heartCanvas"></canvas>
 
     <script>
-        const heartsContainer = document.querySelector('.hearts');
-        const colors = ['#ff6ec7', '#ff9a9e', '#fad0c4', '#fbc2eb', '#f48fb1'];
+        const canvas = document.getElementById("heartCanvas");
+        const ctx = canvas.getContext("2d");
 
-        function createHeart() {
-            const heart = document.createElement('div');
-            heart.classList.add('heart');
-            heart.style.left = Math.random() * 100 + '%';
-            heart.style.animationDuration = (Math.random() * 2 + 4) + 's'; // Thời gian bay ngẫu nhiên
-            heart.style.transform = `scale(${Math.random() * 0.5 + 0.5})`; // Kích thước ngẫu nhiên
-            heart.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            heartsContainer.appendChild(heart);
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-            // Xóa trái tim sau khi hoàn tất
-            setTimeout(() => {
-                heart.remove();
-            }, 6000);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        // Array to store heart particles
+        const particles = [];
+
+        // Create particles
+        function createParticles() {
+            for (let i = 0; i < 300; i++) { // Adjust particle count
+                const x = centerX + Math.random() * 400 - 200; // Random x position near center
+                const y = centerY + Math.random() * 400 - 200; // Random y position near center
+                const size = Math.random() * 3 + 1; // Small heart size
+                const opacity = Math.random() * 0.5 + 0.5; // Transparency
+                const speedX = (Math.random() - 0.5) * 0.5; // Very slow horizontal movement
+                const speedY = (Math.random() - 0.5) * 0.5; // Very slow vertical movement
+                particles.push({ x, y, size, opacity, speedX, speedY });
+            }
         }
 
-        // Tạo trái tim mới mỗi 200ms
-        setInterval(createHeart, 200);
+        // Draw a single heart particle
+        function drawHeartParticle(particle) {
+            const { x, y, size, opacity } = particle;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.bezierCurveTo(
+                x - size / 2, y - size / 2,
+                x - size, y + size / 3,
+                x, y + size
+            );
+            ctx.bezierCurveTo(
+                x + size, y + size / 3,
+                x + size / 2, y - size / 2,
+                x, y
+            );
+            ctx.closePath();
+            ctx.fillStyle = `rgba(255, 105, 180, ${opacity})`; // Pink color
+            ctx.fill();
+        }
+
+        // Update particle positions for random movement
+        function updateParticles() {
+            particles.forEach(particle => {
+                particle.x += particle.speedX; // Move horizontally
+                particle.y += particle.speedY; // Move vertically
+
+                // Reverse direction if particle hits canvas edge
+                if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
+                if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
+            });
+        }
+
+        // Draw central text
+        function drawText() {
+            ctx.font = "48px Arial";
+            ctx.fillStyle = "rgba(255, 20, 147, 1)"; // Deep pink
+            ctx.textAlign = "center";
+            ctx.fillText("Anh Yêu Em Bé Nhiều <3", centerX, centerY + 15);
+        }
+
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updateParticles();
+            particles.forEach(drawHeartParticle);
+            drawText();
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize
+        createParticles();
+        animate();
     </script>
 </body>
 </html>
